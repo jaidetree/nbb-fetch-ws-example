@@ -2,13 +2,17 @@
 ;; incoming http express request, append to the log element.
 
 
-(def host js/window.location.host)
-(def protocol
-  (if (.startsWith js/window.location.host "https")
+;; Determine correct ws url based on current address and protocol
+(def page-url (js/URL. js/window.location.href))
+(def host (.-host page-url))
+(def protocol 
+  (if (.startsWith (.-protocol page-url) "https")
     "wss:"
     "ws:"))
+(def wss-url (str protocol "//" host))
 
-(def socket (js/WebSocket. (str protocol "//" host)))
+;; Connect to the socket server
+(def socket (js/WebSocket. wss-url))
 
 (defn on-open
   "
