@@ -1,35 +1,67 @@
-# Node Babashka (nbb) ClojureScript Repl
+# Node Babashka ClojureScript Fetch Example
 
-## What is it?
+<img src="./screenshot.webp" alt="Screenshot of the clientside application" />
 
-[nbb](https://github.com/babashka/nbb) is a [ClojureScript](https://clojurescript.org/) interpreter that runs in node. It can be installed like any other npm package and can run .cljs files either directly like node or like the `clj` cli using the `-cp` flag to set the claspath and `-m` to target the `-main` function within a namespace.
+A ClojureScript example of using native the native node fetch API introduced in
+node 18+ powered by [nbb](https://github.com/babashka/nbb).
 
-## Why?
+For both fun and completeness this example also runs an echo server in express
+and logs requests to the client through websockets.
 
-Unlike official cljs, nbb requires no build step! It is a binary tool that runs .cljs files directly, even macros are handled by nbb directly. While it does not fully support all official ClojureScript yet, it does support most of the language and has the advantage of running cljs quickly. The official Clojure replit takes almost a minute to startup, while this template can run in just a few seconds. It even supports starting an nrepl-server out of the box.
+The frontend UI uses [scittle](https://github.com/babashka/scittle) to run a
+clientside script that connects to the webserver and appends to the UI. No
+bundling required!
 
-## How
+## Usage
 
-What makes nbb special is that is fully implemented in JS so it does not need to use Java to transform the macros, or produce a bundle. It's a lightweight tool built internally with [shadow-cljs](https://github.com/thheller/shadow-cljs).
+1. Clone the repo
+2. In a terminal, enter the repo `cd nbb-fetch-ws-example`
+3. Install dependencies `yarn install`
+4. Run the shell repl `yarn start`
+5. Visit the page at `http://localhost:8000`
 
-To run an arbitrary cljs script try invoking the following in a replit shell:
+### Run an nrepl-server instead
 
-```sh
-npx nbb script-example.cljs
+If you prefer to run an nrepl-server run `yarn repl` and connect to it from your editor.
+
+## See it on Repl It
+
+https://replit.com/@eccentric-j/Node-Babashka-Fetch-Example#src/cli/core.cljs
+
+See a live demo with an interactive cljs nbb repl.
+
+### Using the REPL
+
+If using the shell repl or exploring in replit, you may use the simplified fetch
+function to test sending a request.
+
+It works identically to the native fetch function but only takes a body object
+that accepts valid serializable, ClojureScript data types.
+
+```clojure
+(fetch {:timestamp (js/Date.now)})
 ```
 
-To invoke a cljs ns `-main` function similar to using the official `clj` cli tool, try invoking the following in a replit shell:
+When working, you should be able to paste that in the repl and see the response echoed
+and the clientside logs the server request.
 
-```sh
-npx nbb -cp src -m cli.core
+
+#### Use node's fetch function
+
+Of course you may be looking for how to use the native node fetch function. Just
+use it like any function:
+
+
+``` clojure
+(p/-> (js/fetch "http://localhost:8000"
+                #js {:method "POST"
+                     :body (js/JSON.stringify
+                            #js {:status "OK"})})
+      (.json)
+      (js/console.log)
+      (p/catch js/console.error))
 ```
 
-As of https://github.com/babashka/nbb/pull/243 projects may contain a root nbb.edn to specify cljs deps and add to the classpath for cljs-style `require` calls.
-
-### Who
-
-`nbb` was written by [Michiel "Borkdude" Borkent](https://github.com/borkdude), the author of [Babashka](https://github.com/babashka/babashka)
-
-## Where
-
-Visit https://github.com/babashka/nbb to learn more about the project.
+The promise handling in that example is making use of the
+[promesa](https://cljdoc.org/d/funcool/promesa/8.0.450/api/promesa.core) promise
+library included in nbb. Regular JS syntax will work too.
