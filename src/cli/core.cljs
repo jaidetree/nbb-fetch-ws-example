@@ -32,9 +32,11 @@
 (defn -main
   []
   (p/do! 
-   (echo-server/start!) 
+   (echo-server/start!)
    (fetch
     {:status :ok
      :message "It works"})
+
+   (println "\nReady! Try calling (fetch {:status :ok}) in the repl\n")
    (repl/repl)
    (println "Repl closed")))

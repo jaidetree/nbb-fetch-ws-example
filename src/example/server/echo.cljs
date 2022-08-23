@@ -7,57 +7,61 @@
    ["ws$default" :refer [WebSocketServer] :as WebSocket]))
 
 (def http-port 8000)
-(def ws-port 8080)
 
 (def app (express))
-(def wss (atom nil))
 
 (defn- on-start 
   [err]
   (if err 
     (js/console.error err)
-    (println "Echo server listening on port" http-port)))
+    (println "echo server listening on port" http-port)))
 
 (defn broadcast
-  [msg]
-  (let [wss @wss
-        clients (->> (.-clients wss)
+  [wss msg]
+  (let [clients (->> (.-clients wss)
                      (js->clj)
                      (filter #(= (.-readyState %) (.-OPEN WebSocket))))]
     (doseq [client clients]
-      (.send client (str "[" (js/Date.now) "]" (:method msg) " " (:url msg) " " (pr-str (:body msg)))))))
+      (.send client (str "[" (-> (js/Date.) (.toISOString)) "] "
+                         (:method msg)     " "
+                         (:url msg)        " "
+                         (prn-str (:body msg)))))))
 
 (defn echo
   [req res]
-  (println "Echo server received request")
-  (broadcast 
+  (broadcast
+   (.-wss req)
    {:method "POST"
     :url (.-url req)
     :body (js->clj (.-body req) :keywordize-keys true)})
   (.json res (.-body req)))
 
+(defn request-wss-mw
+  "
+  Request websocket server middleware
+  Assigns wss to the req object
+  "
+  [wss]
+  (fn wss-middleware
+    [req _res next]
+    (set! (.-wss req) wss)
+    (next)))
+
 (defn start-http-server
-  []
+  [wss]
   (doto app
     (.use (.json express))
     (.use (.static express "public"))
+    (.use (request-wss-mw wss))
     (.post "*" echo))
 
   (js/Promise.
    (fn [resolve _reject]
-     (.listen app 
-              http-port 
-              #(do 
-                 (on-start %)
-                 (resolve app))))))
+     (resolve
+      (.listen app
+               http-port
+               on-start)))))
 
-(defn start-ws-server
-  []
-  (let [server (WebSocketServer. #js {:server app})]
-    (.on server "connection"
-         (fn [ws]
-           (.send ws "Greetings")))
-    (reset! wss server)))
 
 (defn start!
   "
@@ -65,6 +69,14 @@
   Returns a promise when the server is ready for requests.
   "
   []
-  (p/do!
-   (start-http-server)
-   (start-ws-server)))
+  (p/let [wss         (WebSocketServer. #js {:noServer true})
+          http-server (start-http-server wss)]
+    (p/create
+     (fn [resolve _reject]
+       (.on http-server "upgrade"
+            (fn [request socket head]
+              (.handleUpgrade wss request socket head
+                              (fn [socket]
+                                (println "WebSocket client connected...")
+                                (.emit wss "connection" socket request)
+                                (resolve {:wss wss :http http-server})))))))))

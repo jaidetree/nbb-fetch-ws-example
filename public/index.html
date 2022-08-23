@@ -8,9 +8,15 @@
   </head>
   <body class="p-8 bg-gray-800 text-gray-200">
     <main class="text-center">
-      
       <h1 class="text-lg mb-8">echo server is running on port 8000</h1>
-     <div id="log" class="whitespace-pre-wrap border border-gray-600 rounded-sm p-4 bg-gray-700 text-white font-mono"></div> 
+
+      <div class="prose prose-sm text-center prose-invert text-gray-400 m-auto max-w-2xl">
+          <p>Log of requests sent to server</p>
+      </div>
+
+      <div
+          id="log"
+          class="whitespace-pre-wrap border border-gray-600 rounded-sm p-4 bg-gray-700 text-white font-mono text-left text-xs shadow"></div>
     </main>
     <script type="application/x-scittle" src="log.cljs"></script>
   </body>
