@@ -1,0 +1,33 @@
+run = "npm start"
+entrypoint = "src/cli/core.cljs"
+
+
+[nix]
+channel = "stable-22_05"
+
+[env]
+XDG_CONFIG_HOME = "/home/runner/.config"
+
+[packager]
+language = "nodejs"
+
+  [packager.features]
+  packageSearch = true
+  guessImports = true
+  enabledForHosting = false
+
+[unitTest]
+language = "nodejs"
+
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+
+  [languages.javascript.languageServer]
+  start = [ "typescript-language-server", "--stdio" ]
+
+
+[languages.clojure]
+pattern = "**/*.cljs"
+
+[languages.clojure.languageServer]
+start = ["clojure-lsp"]

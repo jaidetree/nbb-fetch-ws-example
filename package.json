@@ -1,0 +1,17 @@
+{
+  "name": "node-babashka-fetch-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cli/core.cljs",
+  "scripts": {
+    "start": "nbb -cp src -m cli.core"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1",
+    "nbb": "*",
+    "ws": "^8.8.1"
+  }
+}
