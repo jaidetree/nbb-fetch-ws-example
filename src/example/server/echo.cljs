@@ -34,7 +34,9 @@
    {:method "POST"
     :url (.-url req)
     :body (js->clj (.-body req) :keywordize-keys true)})
-  (.json res (.-body req)))
+  (doto res
+    (.setHeader "Content-Type" "application/json")
+    (.json (.-body req))))
 
 (defn request-wss-mw
   "
